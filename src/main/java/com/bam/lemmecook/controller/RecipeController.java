@@ -69,4 +69,23 @@ public class RecipeController {
 
         return ResponseEntity.ok(ingredientDTOs);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ResponseRecipeDTO>> searchRecipes(@RequestParam String keyword) {
+        List<Recipe> recipes = recipeService.getRecipesByKeyword(keyword);
+        List<ResponseRecipeDTO> responseRecipeDTOs = recipes.stream()
+                .map(recipe -> new ResponseRecipeDTO(
+                        recipe.getId(),
+                        recipe.getUserId(),
+                        recipe.getName(),
+                        recipe.getDescription(),
+                        recipe.getInstructions(),
+                        recipe.getCreatedAt(),
+                        recipe.getUpdatedAt(),
+                        recipeService.getIngredientsByRecipeId(recipe.getId()))
+                )
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseRecipeDTOs);
+    }
 }

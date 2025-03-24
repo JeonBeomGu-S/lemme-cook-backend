@@ -44,4 +44,8 @@ public class RecipeService {
     public List<Ingredient> getIngredientsByRecipeId(Integer recipeId) {
         return ingredientRepository.findIngredientsByRecipeId(recipeId);
     }
+
+    public List<Recipe> getRecipesByKeyword(String keyword) {
+        return recipeRepository.findByKeyword(keyword);
+    }
 }

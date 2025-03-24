@@ -16,4 +16,8 @@ public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
         WHERE ri.id.ingredientId IN :ingredientIds
     """)
     List<Recipe> findRecipesByIngredientIds(@Param("ingredientIds") List<Integer> ingredientIds);
+
+    @Query("SELECT r FROM Recipe r WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<Recipe> findByKeyword(@Param("keyword") String keyword);
 }
