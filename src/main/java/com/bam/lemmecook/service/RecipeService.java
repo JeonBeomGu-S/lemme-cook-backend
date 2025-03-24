@@ -48,4 +48,8 @@ public class RecipeService {
     public List<Recipe> getRecipesByKeyword(String keyword) {
         return recipeRepository.findByKeyword(keyword);
     }
+
+    public List<Recipe> getAllRecipes() {
+        return recipeRepository.findAll();
+    }
 }

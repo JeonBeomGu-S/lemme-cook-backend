@@ -20,6 +20,25 @@ public class RecipeController {
         this.recipeService = recipeService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<ResponseRecipeDTO>> getAllRecipes() {
+        List<Recipe> recipes = recipeService.getAllRecipes();
+        List<ResponseRecipeDTO> recipeDTOs = recipes.stream()
+                .map(recipe -> new ResponseRecipeDTO(
+                        recipe.getId(),
+                        recipe.getUserId(),
+                        recipe.getName(),
+                        recipe.getDescription(),
+                        recipe.getInstructions(),
+                        recipe.getCreatedAt(),
+                        recipe.getUpdatedAt(),
+                        recipeService.getIngredientsByRecipeId(recipe.getId())
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(recipeDTOs);
+    }
+
     @GetMapping("/recommend")
     public ResponseEntity<List<ResponseRecipeDTO>> getRecipesByIngredients(@RequestParam List<Integer> ingredientIds) {
         List<Recipe> recipes = recipeService.getRecipesByIngredients(ingredientIds);
