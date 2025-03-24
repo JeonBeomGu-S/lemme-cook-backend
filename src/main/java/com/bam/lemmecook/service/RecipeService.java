@@ -40,4 +40,8 @@ public class RecipeService {
                 .filter(ingredient -> !selectedIngredientIds.contains(ingredient.getId()))
                 .collect(Collectors.toList());
     }
+
+    public List<Ingredient> getIngredientsByRecipeId(Integer recipeId) {
+        return ingredientRepository.findIngredientsByRecipeId(recipeId);
+    }
 }

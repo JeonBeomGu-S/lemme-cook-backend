@@ -31,7 +31,8 @@ public class RecipeController {
                         recipe.getDescription(),
                         recipe.getInstructions(),
                         recipe.getCreatedAt(),
-                        recipe.getUpdatedAt()
+                        recipe.getUpdatedAt(),
+                        recipeService.getIngredientsByRecipeId(recipe.getId())
                 ))
                 .collect(Collectors.toList());
 
@@ -49,7 +50,8 @@ public class RecipeController {
                 recipe.getDescription(),
                 recipe.getInstructions(),
                 recipe.getCreatedAt(),
-                recipe.getUpdatedAt()
+                recipe.getUpdatedAt(),
+                recipeService.getIngredientsByRecipeId(recipe.getId())
         );
 
         return ResponseEntity.ok(recipeDTO);
