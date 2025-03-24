@@ -1,10 +1,12 @@
 package com.bam.lemmecook.controller;
 
 import com.bam.lemmecook.dto.response.ResponseIngredientDTO;
+import com.bam.lemmecook.dto.response.ResponseStoreDTO;
 import com.bam.lemmecook.service.IngredientService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -28,5 +30,14 @@ public class IngredientController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(ingredientDTOs);
+    }
+
+    @GetMapping("/store")
+    public ResponseEntity<List<ResponseStoreDTO>> getStoresSellingIngredients(
+            @RequestParam List<Integer> missingIngredientList) {
+
+        List<ResponseStoreDTO> responseStoreDTOs = ingredientService.getStoresSellingIngredients(missingIngredientList);
+
+        return ResponseEntity.ok(responseStoreDTOs);
     }
 }

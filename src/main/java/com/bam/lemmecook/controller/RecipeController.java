@@ -1,6 +1,8 @@
 package com.bam.lemmecook.controller;
 
+import com.bam.lemmecook.dto.response.ResponseIngredientDTO;
 import com.bam.lemmecook.dto.response.ResponseRecipeDTO;
+import com.bam.lemmecook.entity.Ingredient;
 import com.bam.lemmecook.entity.Recipe;
 import com.bam.lemmecook.service.RecipeService;
 import org.springframework.http.ResponseEntity;
@@ -51,5 +53,18 @@ public class RecipeController {
         );
 
         return ResponseEntity.ok(recipeDTO);
+    }
+
+    @GetMapping("/{id}/missing-ingredients")
+    public ResponseEntity<List<ResponseIngredientDTO>> getMissingIngredients(
+            @PathVariable Integer id,
+            @RequestParam List<Integer> selectedIngredientList) {
+
+        List<Ingredient> missingIngredients = recipeService.getMissingIngredients(id, selectedIngredientList);
+        List<ResponseIngredientDTO> ingredientDTOs = missingIngredients.stream()
+                .map(ingredient -> new ResponseIngredientDTO(ingredient.getId(), ingredient.getName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ingredientDTOs);
     }
 }
