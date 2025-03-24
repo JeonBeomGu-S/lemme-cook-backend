@@ -1,13 +1,10 @@
 package com.bam.lemmecook.service;
 
 import com.bam.lemmecook.dto.request.RequestRecipeDTO;
-import com.bam.lemmecook.entity.Ingredient;
-import com.bam.lemmecook.entity.Recipe;
-import com.bam.lemmecook.entity.RecipeIngredient;
+import com.bam.lemmecook.entity.*;
+import com.bam.lemmecook.entity.id.FavouriteRecipeId;
 import com.bam.lemmecook.entity.id.RecipeIngredientId;
-import com.bam.lemmecook.repository.IngredientRepository;
-import com.bam.lemmecook.repository.RecipeIngredientRepository;
-import com.bam.lemmecook.repository.RecipeRepository;
+import com.bam.lemmecook.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
@@ -24,12 +21,17 @@ public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final IngredientRepository ingredientRepository;
     private final RecipeIngredientRepository recipeIngredientRepository;
+    private final FavouriteRecipeRepository favouriteRecipeRepository;
+    private final UserRepository userRepository;
 
     public RecipeService(RecipeRepository recipeRepository, IngredientRepository ingredientRepository,
-                         RecipeIngredientRepository recipeIngredientRepository) {
+                         RecipeIngredientRepository recipeIngredientRepository,
+                         FavouriteRecipeRepository favouriteRecipeRepository, UserRepository userRepository) {
         this.recipeRepository = recipeRepository;
         this.ingredientRepository = ingredientRepository;
         this.recipeIngredientRepository = recipeIngredientRepository;
+        this.favouriteRecipeRepository = favouriteRecipeRepository;
+        this.userRepository = userRepository;
     }
 
     public List<Recipe> getRecipesByIngredients(List<Integer> ingredientIds) {
@@ -184,5 +186,42 @@ public class RecipeService {
 
         recipeIngredientRepository.deleteByRecipeId(recipeId);
         recipeRepository.delete(recipe);
+    }
+
+    public void addFavouriteRecipe(Integer userId, Integer recipeId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        Optional<Recipe> optionalRecipe = recipeRepository.findById(recipeId);
+
+        if (optionalUser.isEmpty()) {
+            throw new EntityNotFoundException("User not found with id " + userId);
+        }
+
+        if (optionalRecipe.isEmpty()) {
+            throw new EntityNotFoundException("Recipe not found with id " + recipeId);
+        }
+
+        favouriteRecipeRepository.save(new FavouriteRecipe(
+                new FavouriteRecipeId(userId, recipeId),
+                optionalUser.get(),
+                optionalRecipe.get()
+        ));
+    }
+
+    @Transactional
+    public List<Recipe> getFavouriteRecipes(Integer userId) {
+        Optional<List<FavouriteRecipe>> optionalFavouriteRecipes = favouriteRecipeRepository.findAllByUserId(userId);
+        if (optionalFavouriteRecipes.isEmpty()) {
+            throw new EntityNotFoundException("No favourite recipes found");
+        }
+
+        List<FavouriteRecipe> favouriteRecipes = optionalFavouriteRecipes.get();
+
+        return favouriteRecipes.stream().map(favouriteRecipe -> {
+            Optional<Recipe> recipe = recipeRepository.findById(favouriteRecipe.getId().getRecipeId());
+            if (recipe.isEmpty()) {
+                throw new EntityNotFoundException("Recipe not found with id " + favouriteRecipe.getId());
+            }
+            return recipe.get();
+        }).toList();
     }
 }

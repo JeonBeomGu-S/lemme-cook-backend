@@ -165,4 +165,36 @@ public class RecipeController {
         recipeService.deleteRecipe(id, userId);
         return ResponseEntity.ok("Deleted successfully!");
     }
+
+    @PostMapping("/{id}/favourites")
+    public ResponseEntity<?> addFavouriteRecipe(@PathVariable Integer id) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        recipeService.addFavouriteRecipe(userId, id);
+        return ResponseEntity.ok("Added a favourite recipe successfully!");
+    }
+
+    @GetMapping("/favourites")
+    public ResponseEntity<List<ResponseRecipeDTO>> favouriteRecipes() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        List<Recipe> favouriteRecipeList = recipeService.getFavouriteRecipes(userId);
+        List<ResponseRecipeDTO> responseRecipeDTOs = favouriteRecipeList.stream().map(recipe -> new ResponseRecipeDTO(
+                recipe.getId(),
+                recipe.getUserId(),
+                userService.getUserNameById(recipe.getUserId()),
+                recipe.getName(),
+                recipe.getDescription(),
+                recipe.getInstructions(),
+                recipe.getImageUrl(),
+                recipe.getPrepTime(),
+                recipe.getServings(),
+                recipe.getCreatedAt(),
+                recipe.getUpdatedAt(),
+                recipeService.getIngredientsByRecipeId(recipe.getId())
+        )).toList();
+        return ResponseEntity.ok(responseRecipeDTOs);
+    }
 }
