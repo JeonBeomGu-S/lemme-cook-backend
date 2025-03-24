@@ -1,24 +1,35 @@
 package com.bam.lemmecook.service;
 
+import com.bam.lemmecook.dto.request.RequestRecipeDTO;
 import com.bam.lemmecook.entity.Ingredient;
 import com.bam.lemmecook.entity.Recipe;
+import com.bam.lemmecook.entity.RecipeIngredient;
+import com.bam.lemmecook.entity.id.RecipeIngredientId;
 import com.bam.lemmecook.repository.IngredientRepository;
+import com.bam.lemmecook.repository.RecipeIngredientRepository;
 import com.bam.lemmecook.repository.RecipeRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final IngredientRepository ingredientRepository;
+    private final RecipeIngredientRepository recipeIngredientRepository;
 
-    public RecipeService(RecipeRepository recipeRepository, IngredientRepository ingredientRepository) {
+    public RecipeService(RecipeRepository recipeRepository, IngredientRepository ingredientRepository,
+                         RecipeIngredientRepository recipeIngredientRepository) {
         this.recipeRepository = recipeRepository;
         this.ingredientRepository = ingredientRepository;
+        this.recipeIngredientRepository = recipeIngredientRepository;
     }
 
     public List<Recipe> getRecipesByIngredients(List<Integer> ingredientIds) {
@@ -51,5 +62,127 @@ public class RecipeService {
 
     public List<Recipe> getAllRecipes() {
         return recipeRepository.findAll();
+    }
+
+    @Transactional
+    public void createRecipe(RequestRecipeDTO requestRecipeDTO, int userId) {
+        // create a new recipe and save it
+        Recipe recipe = recipeRepository.save(
+                new Recipe(
+                        null,
+                        userId,
+                        requestRecipeDTO.getName(),
+                        requestRecipeDTO.getDescription(),
+                        requestRecipeDTO.getInstructions(),
+                        requestRecipeDTO.getImageUrl(),
+                        requestRecipeDTO.getPrepTime(),
+                        requestRecipeDTO.getServings(),
+                        new Date(),
+                        new Date()
+                )
+        );
+
+        // get generated id
+        int recipeId = recipe.getId();
+
+        // create a required ingredient list
+        List<RecipeIngredient> recipeIngredients = requestRecipeDTO.getRequiredIngredients()
+                .stream()
+                .map(requiredIngredient -> {
+                            int ingredientId = requiredIngredient.getId();
+                            Optional<Ingredient> ingredient = ingredientRepository.findById(ingredientId);
+                            if (ingredient.isEmpty()) {
+                                throw new EntityNotFoundException("Ingredient not found with id " + ingredientId);
+                            }
+
+                            return new RecipeIngredient(
+                                    new RecipeIngredientId(recipeId, ingredientId),
+                                    requiredIngredient.getQuantity(),
+                                    recipe,
+                                    ingredient.get()
+                            );
+                        }
+                )
+                .toList();
+
+        // save the required ingredient list
+        List<RecipeIngredient> savedRecipeIngredients = recipeIngredientRepository.saveAll(recipeIngredients);
+        if (savedRecipeIngredients.size() != recipeIngredients.size()) {
+            throw new RuntimeException("Failed to save all Recipe Ingredients");
+        }
+    }
+
+    @Transactional
+    public void updateRecipe(Integer recipeId, RequestRecipeDTO requestRecipeDTO, int userId) {
+        // find the recipe to update
+        Optional<Recipe> optionalRecipe = recipeRepository.findById(recipeId);
+        if (optionalRecipe.isEmpty()) {
+            throw new EntityNotFoundException("Recipe not found with id " + recipeId);
+        }
+
+        Recipe recipe = optionalRecipe.get();
+
+        // throw error if author and the person editing are different
+        if (recipe.getUserId() != userId) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        // set values to update
+        recipe.setUserId(userId);
+        recipe.setName(requestRecipeDTO.getName());
+        recipe.setDescription(requestRecipeDTO.getDescription());
+        recipe.setInstructions(requestRecipeDTO.getInstructions());
+        recipe.setImageUrl(requestRecipeDTO.getImageUrl());
+        recipe.setPrepTime(requestRecipeDTO.getPrepTime());
+        recipe.setServings(requestRecipeDTO.getServings());
+
+        // save the recipe
+        recipeRepository.save(recipe);
+        // delete existing ingredient from the recipe_ingredient table
+        recipeIngredientRepository.deleteByRecipeId(recipeId);
+
+        // create new required ingredient list
+        List<RecipeIngredient> recipeIngredients = requestRecipeDTO.getRequiredIngredients()
+                .stream()
+                .map(requiredIngredient -> {
+                            int ingredientId = requiredIngredient.getId();
+                            Optional<Ingredient> ingredient = ingredientRepository.findById(ingredientId);
+
+                            if (ingredient.isEmpty()) {
+                                throw new EntityNotFoundException("Ingredient not found with id " + ingredientId);
+                            }
+
+                            return new RecipeIngredient(
+                                    new RecipeIngredientId(recipeId, ingredientId),
+                                    requiredIngredient.getQuantity(),
+                                    recipe,
+                                    ingredient.get()
+                            );
+                        }
+                )
+                .toList();
+
+        // save new required ingredient list
+        List<RecipeIngredient> savedRecipeIngredients = recipeIngredientRepository.saveAll(recipeIngredients);
+        if (savedRecipeIngredients.size() != recipeIngredients.size()) {
+            throw new RuntimeException("Failed to save all Recipe Ingredients");
+        }
+    }
+
+    @Transactional
+    public void deleteRecipe(Integer recipeId, int userId) {
+        Optional<Recipe> optionalRecipe = recipeRepository.findById(recipeId);
+        if (optionalRecipe.isEmpty()) {
+            throw new EntityNotFoundException("Recipe not found with id " + recipeId);
+        }
+        Recipe recipe = optionalRecipe.get();
+
+        // throw error if author and the person editing are different
+        if (recipe.getUserId() != userId) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        recipeIngredientRepository.deleteByRecipeId(recipeId);
+        recipeRepository.delete(recipe);
     }
 }

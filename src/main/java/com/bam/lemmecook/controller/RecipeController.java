@@ -1,14 +1,17 @@
 package com.bam.lemmecook.controller;
 
+import com.bam.lemmecook.dto.request.RequestRecipeDTO;
 import com.bam.lemmecook.dto.response.ResponseGeminiAnswerDTO;
 import com.bam.lemmecook.dto.response.ResponseIngredientDTO;
 import com.bam.lemmecook.dto.response.ResponseRecipeDTO;
 import com.bam.lemmecook.entity.Ingredient;
 import com.bam.lemmecook.entity.Recipe;
+import com.bam.lemmecook.security.UserDetails;
 import com.bam.lemmecook.service.GeminiService;
 import com.bam.lemmecook.service.RecipeService;
 import com.bam.lemmecook.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -134,5 +137,32 @@ public class RecipeController {
     @GetMapping("/generate")
     public ResponseEntity<ResponseGeminiAnswerDTO> generateResponse(@RequestParam String prompt) {
         return ResponseEntity.ok(geminiService.getGeminiResponse(prompt));
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createRecipe(@RequestBody RequestRecipeDTO recipeDTO) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        recipeService.createRecipe(recipeDTO, userId);
+        return ResponseEntity.ok("Created successfully!");
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateRecipe(@PathVariable Integer id, @RequestBody RequestRecipeDTO recipeDTO) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        recipeService.updateRecipe(id, recipeDTO, userId);
+        return ResponseEntity.ok("Updated successfully!");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteRecipe(@PathVariable Integer id) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        recipeService.deleteRecipe(id, userId);
+        return ResponseEntity.ok("Deleted successfully!");
     }
 }
