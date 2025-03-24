@@ -7,6 +7,7 @@ import com.bam.lemmecook.entity.Ingredient;
 import com.bam.lemmecook.entity.Recipe;
 import com.bam.lemmecook.service.GeminiService;
 import com.bam.lemmecook.service.RecipeService;
+import com.bam.lemmecook.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +19,12 @@ import java.util.stream.Collectors;
 public class RecipeController {
     private final RecipeService recipeService;
     private final GeminiService geminiService;
+    private final UserService userService;
 
-    public RecipeController(RecipeService recipeService, GeminiService geminiService) {
+    public RecipeController(RecipeService recipeService, GeminiService geminiService, UserService userService) {
         this.recipeService = recipeService;
         this.geminiService = geminiService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -31,9 +34,13 @@ public class RecipeController {
                 .map(recipe -> new ResponseRecipeDTO(
                         recipe.getId(),
                         recipe.getUserId(),
+                        userService.getUserNameById(recipe.getUserId()),
                         recipe.getName(),
                         recipe.getDescription(),
                         recipe.getInstructions(),
+                        recipe.getImageUrl(),
+                        recipe.getPrepTime(),
+                        recipe.getServings(),
                         recipe.getCreatedAt(),
                         recipe.getUpdatedAt(),
                         recipeService.getIngredientsByRecipeId(recipe.getId())
@@ -50,9 +57,13 @@ public class RecipeController {
                 .map(recipe -> new ResponseRecipeDTO(
                         recipe.getId(),
                         recipe.getUserId(),
+                        userService.getUserNameById(recipe.getUserId()),
                         recipe.getName(),
                         recipe.getDescription(),
                         recipe.getInstructions(),
+                        recipe.getImageUrl(),
+                        recipe.getPrepTime(),
+                        recipe.getServings(),
                         recipe.getCreatedAt(),
                         recipe.getUpdatedAt(),
                         recipeService.getIngredientsByRecipeId(recipe.getId())
@@ -69,9 +80,13 @@ public class RecipeController {
         ResponseRecipeDTO recipeDTO = new ResponseRecipeDTO(
                 recipe.getId(),
                 recipe.getUserId(),
+                userService.getUserNameById(recipe.getUserId()),
                 recipe.getName(),
                 recipe.getDescription(),
                 recipe.getInstructions(),
+                recipe.getImageUrl(),
+                recipe.getPrepTime(),
+                recipe.getServings(),
                 recipe.getCreatedAt(),
                 recipe.getUpdatedAt(),
                 recipeService.getIngredientsByRecipeId(recipe.getId())
@@ -100,9 +115,13 @@ public class RecipeController {
                 .map(recipe -> new ResponseRecipeDTO(
                         recipe.getId(),
                         recipe.getUserId(),
+                        userService.getUserNameById(recipe.getUserId()),
                         recipe.getName(),
                         recipe.getDescription(),
                         recipe.getInstructions(),
+                        recipe.getImageUrl(),
+                        recipe.getPrepTime(),
+                        recipe.getServings(),
                         recipe.getCreatedAt(),
                         recipe.getUpdatedAt(),
                         recipeService.getIngredientsByRecipeId(recipe.getId()))

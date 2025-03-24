@@ -14,9 +14,13 @@ import java.util.List;
 public class ResponseRecipeDTO {
     private int id;
     private int userId;
+    private String userName;
     private String name;
     private String description;
     private String instructions;
+    private String imageUrl;
+    private int prepTime;
+    private int servings;
     private Date createdAt;
     private Date updatedAt;
     private List<Ingredient> requiredIngredients;
