@@ -1,9 +1,11 @@
 package com.bam.lemmecook.controller;
 
+import com.bam.lemmecook.dto.response.ResponseGeminiAnswerDTO;
 import com.bam.lemmecook.dto.response.ResponseIngredientDTO;
 import com.bam.lemmecook.dto.response.ResponseRecipeDTO;
 import com.bam.lemmecook.entity.Ingredient;
 import com.bam.lemmecook.entity.Recipe;
+import com.bam.lemmecook.service.GeminiService;
 import com.bam.lemmecook.service.RecipeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +17,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/recipes")
 public class RecipeController {
     private final RecipeService recipeService;
+    private final GeminiService geminiService;
 
-    public RecipeController(RecipeService recipeService) {
+    public RecipeController(RecipeService recipeService, GeminiService geminiService) {
         this.recipeService = recipeService;
+        this.geminiService = geminiService;
     }
 
     @GetMapping
@@ -106,5 +110,10 @@ public class RecipeController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(responseRecipeDTOs);
+    }
+
+    @GetMapping("/generate")
+    public ResponseEntity<ResponseGeminiAnswerDTO> generateResponse(@RequestParam String prompt) {
+        return ResponseEntity.ok(geminiService.getGeminiResponse(prompt));
     }
 }
