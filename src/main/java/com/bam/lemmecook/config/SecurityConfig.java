@@ -34,6 +34,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/recipes/{id}").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/recipes/favourites").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/recipes/{id}/favourites").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/user/follow/{targetId}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/user/follow/{targetId}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/user/following").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/user/follower").authenticated()
                         .anyRequest().permitAll()
                 ).addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenUtil),

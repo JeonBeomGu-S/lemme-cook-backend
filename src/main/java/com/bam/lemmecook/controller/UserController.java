@@ -2,9 +2,12 @@ package com.bam.lemmecook.controller;
 
 import com.bam.lemmecook.dto.request.RequestLoginDTO;
 import com.bam.lemmecook.dto.request.RequestSignupDTO;
+import com.bam.lemmecook.dto.response.ResponseUserDTO;
 import com.bam.lemmecook.entity.User;
 import com.bam.lemmecook.repository.UserRepository;
 import com.bam.lemmecook.security.JwtToken;
+import com.bam.lemmecook.security.UserDetails;
+import com.bam.lemmecook.service.UserService;
 import com.bam.lemmecook.util.JwtTokenUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -26,11 +30,13 @@ public class UserController {
     private final UserRepository userRepository;
     private final JwtTokenUtil jwtTokenUtil;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository, JwtTokenUtil jwtTokenUtil, BCryptPasswordEncoder passwordEncoder) {
+    public UserController(UserRepository userRepository, JwtTokenUtil jwtTokenUtil, BCryptPasswordEncoder passwordEncoder, UserService userService) {
         this.userRepository = userRepository;
         this.jwtTokenUtil = jwtTokenUtil;
         this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
     }
 
     // Signup
@@ -70,5 +76,52 @@ public class UserController {
         } else {
             return ResponseEntity.status(404).body("User not found");
         }
+    }
+
+    @PostMapping("/follow/{targetId}")
+    public ResponseEntity<?> follow(@PathVariable Integer targetId) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        userService.follow(userId, targetId);
+
+        return ResponseEntity.ok("User followed");
+    }
+
+    @DeleteMapping("/follow/{targetId}")
+    public ResponseEntity<?> unfollow(@PathVariable Integer targetId) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        userService.unfollow(userId, targetId);
+        return ResponseEntity.ok("User unfollowed");
+    }
+
+    @GetMapping("/following")
+    public ResponseEntity<?> getFollowList() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        List<User> users = userService.getFollowingList(userId);
+        List<ResponseUserDTO> userDTOs = users
+                .stream()
+                .map(user -> new ResponseUserDTO(user.getId(), user.getUsername()))
+                .toList();
+
+        return ResponseEntity.ok(userDTOs);
+    }
+
+    @GetMapping("/follower")
+    public ResponseEntity<?> getFollowerList() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        List<User> users = userService.getFollowerList(userId);
+        List<ResponseUserDTO> userDTOs = users
+                .stream()
+                .map(user -> new ResponseUserDTO(user.getId(), user.getUsername()))
+                .toList();
+
+        return ResponseEntity.ok(userDTOs);
     }
 }
