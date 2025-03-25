@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class ResponseIngredientDTO {
     private int id;
     private String name;
+    private String imageUrl;
 }

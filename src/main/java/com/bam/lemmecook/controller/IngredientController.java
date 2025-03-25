@@ -26,7 +26,8 @@ public class IngredientController {
         List<ResponseIngredientDTO> ingredientDTOs = ingredientService.getIngredientList().stream()
                 .map(ingredient -> new ResponseIngredientDTO(
                         ingredient.getId(),
-                        ingredient.getName()))
+                        ingredient.getName(),
+                        ingredient.getImageUrl()))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(ingredientDTOs);

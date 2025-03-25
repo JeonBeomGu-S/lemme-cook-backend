@@ -105,7 +105,10 @@ public class RecipeController {
 
         List<Ingredient> missingIngredients = recipeService.getMissingIngredients(id, selectedIngredientList);
         List<ResponseIngredientDTO> ingredientDTOs = missingIngredients.stream()
-                .map(ingredient -> new ResponseIngredientDTO(ingredient.getId(), ingredient.getName()))
+                .map(ingredient -> new ResponseIngredientDTO(
+                        ingredient.getId(),
+                        ingredient.getName(),
+                        ingredient.getImageUrl()))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(ingredientDTOs);
