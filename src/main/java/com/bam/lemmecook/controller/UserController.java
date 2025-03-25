@@ -2,6 +2,7 @@ package com.bam.lemmecook.controller;
 
 import com.bam.lemmecook.dto.request.RequestLoginDTO;
 import com.bam.lemmecook.dto.request.RequestSignupDTO;
+import com.bam.lemmecook.dto.response.ResponseDTO;
 import com.bam.lemmecook.dto.response.ResponseUserDTO;
 import com.bam.lemmecook.entity.User;
 import com.bam.lemmecook.repository.UserRepository;
@@ -9,6 +10,7 @@ import com.bam.lemmecook.security.JwtToken;
 import com.bam.lemmecook.security.UserDetails;
 import com.bam.lemmecook.service.UserService;
 import com.bam.lemmecook.util.JwtTokenUtil;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,16 +46,41 @@ public class UserController {
     public ResponseEntity<?> signup(@RequestBody RequestSignupDTO user) {
         // encrypt password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(new User(
-                null,
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getRole(),
-                new Date(),
-                new Date()
-        ));
-        return ResponseEntity.ok("User registered successfully");
+        try {
+            userRepository.save(new User(
+                    null,
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getPassword(),
+                    user.getRole(),
+                    new Date(),
+                    new Date()
+            ));
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(
+                    ResponseDTO
+                            .builder()
+                            .status(400)
+                            .message("The email is a duplicate.")
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(
+                    ResponseDTO
+                            .builder()
+                            .status(500)
+                            .message(e.getMessage())
+                            .build()
+            );
+        }
+
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("User registered successfully")
+                        .build()
+        );
     }
 
     // login
@@ -71,10 +98,22 @@ public class UserController {
 
                 return ResponseEntity.ok(token);
             } else {
-                return ResponseEntity.status(401).body("Invalid credentials");
+                return ResponseEntity.status(401).body(
+                        ResponseDTO
+                                .builder()
+                                .status(401)
+                                .message("Invalid credentials")
+                                .build()
+                );
             }
         } else {
-            return ResponseEntity.status(404).body("User not found");
+            return ResponseEntity.status(404).body(
+                    ResponseDTO
+                            .builder()
+                            .status(401)
+                            .message("User not found")
+                            .build()
+            );
         }
     }
 
@@ -85,7 +124,13 @@ public class UserController {
 
         userService.follow(userId, targetId);
 
-        return ResponseEntity.ok("User followed");
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("User followed")
+                        .build()
+        );
     }
 
     @DeleteMapping("/follow/{targetId}")
@@ -94,7 +139,13 @@ public class UserController {
         int userId = userDetails.getId();
 
         userService.unfollow(userId, targetId);
-        return ResponseEntity.ok("User unfollowed");
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("User unfollowed")
+                        .build()
+        );
     }
 
     @GetMapping("/following")

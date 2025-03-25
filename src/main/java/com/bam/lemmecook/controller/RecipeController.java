@@ -1,6 +1,7 @@
 package com.bam.lemmecook.controller;
 
 import com.bam.lemmecook.dto.request.RequestRecipeDTO;
+import com.bam.lemmecook.dto.response.ResponseDTO;
 import com.bam.lemmecook.dto.response.ResponseGeminiAnswerDTO;
 import com.bam.lemmecook.dto.response.ResponseIngredientDTO;
 import com.bam.lemmecook.dto.response.ResponseRecipeDTO;
@@ -148,7 +149,13 @@ public class RecipeController {
         int userId = userDetails.getId();
 
         recipeService.createRecipe(recipeDTO, userId);
-        return ResponseEntity.ok("Created successfully!");
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("Created successfully!")
+                        .build()
+        );
     }
 
     @PatchMapping("/{id}")
@@ -157,7 +164,13 @@ public class RecipeController {
         int userId = userDetails.getId();
 
         recipeService.updateRecipe(id, recipeDTO, userId);
-        return ResponseEntity.ok("Updated successfully!");
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("Updated successfully!")
+                        .build()
+        );
     }
 
     @DeleteMapping("/{id}")
@@ -166,7 +179,13 @@ public class RecipeController {
         int userId = userDetails.getId();
 
         recipeService.deleteRecipe(id, userId);
-        return ResponseEntity.ok("Deleted successfully!");
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("Deleted successfully!")
+                        .build()
+        );
     }
 
     @PostMapping("/{id}/favourites")
@@ -175,7 +194,14 @@ public class RecipeController {
         int userId = userDetails.getId();
 
         recipeService.addFavouriteRecipe(userId, id);
-        return ResponseEntity.ok("Added a favourite recipe successfully!");
+
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("Added a favourite recipe successfully!")
+                        .build()
+        );
     }
 
     @GetMapping("/favourites")
