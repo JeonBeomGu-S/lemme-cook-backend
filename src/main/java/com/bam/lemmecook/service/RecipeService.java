@@ -207,6 +207,23 @@ public class RecipeService {
         ));
     }
 
+    public void deleteFavouriteRecipe(Integer userId, Integer recipeId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        Optional<Recipe> optionalRecipe = recipeRepository.findById(recipeId);
+        if (optionalUser.isEmpty()) {
+            throw new EntityNotFoundException("User not found with id " + userId);
+        }
+
+        if (optionalRecipe.isEmpty()) {
+            throw new EntityNotFoundException("Recipe not found with id " + recipeId);
+        }
+
+        favouriteRecipeRepository.deleteByUserIdAndRecipeId(
+                optionalUser.get().getId(),
+                optionalRecipe.get().getId()
+        );
+    }
+
     @Transactional
     public List<Recipe> getFavouriteRecipes(Integer userId) {
         Optional<List<FavouriteRecipe>> optionalFavouriteRecipes = favouriteRecipeRepository.findAllByUserId(userId);

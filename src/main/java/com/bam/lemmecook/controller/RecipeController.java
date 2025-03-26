@@ -204,6 +204,22 @@ public class RecipeController {
         );
     }
 
+    @DeleteMapping("/{id}/favourites")
+    public ResponseEntity<?> deleteFavouriteRecipe(@PathVariable Integer id) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        int userId = userDetails.getId();
+
+        recipeService.deleteFavouriteRecipe(userId, id);
+
+        return ResponseEntity.ok(
+                ResponseDTO
+                        .builder()
+                        .status(200)
+                        .message("Deleted a favourite recipe successfully!")
+                        .build()
+        );
+    }
+
     @GetMapping("/favourites")
     public ResponseEntity<List<ResponseRecipeDTO>> favouriteRecipes() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
