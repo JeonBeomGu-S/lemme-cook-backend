@@ -14,6 +14,7 @@ public class ResponseStoreDTO {
     private String address;
     private double latitude;
     private double longitude;
+    private double distance;
     private int ingredientId;
     private String ingredientName;
     private double price;

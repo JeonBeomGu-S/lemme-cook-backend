@@ -18,4 +18,5 @@ public class Store {
     private String address;
     private double latitude;
     private double longitude;
+    private double distance;
 }
