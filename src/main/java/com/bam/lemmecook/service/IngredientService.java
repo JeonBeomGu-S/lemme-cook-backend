@@ -22,6 +22,10 @@ public class IngredientService {
         return ingredientRepository.findAll();
     }
 
+    public Ingredient getIngredientById(int id) {
+        return ingredientRepository.findById(id).orElse(null);
+    }
+
     public List<ResponseStoreDTO> getStoresSellingIngredients(List<Integer> missingIngredientIds) {
         return storeRepository.findStoresByIngredientIds(missingIngredientIds);
     }
